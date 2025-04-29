@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>连点速度测试</title>
+        <style>
+            body {
+                background-color: #f2f2f2;
+                font-family: Arial, sans-serif;
+                font-size: 16px;
+                line-height: 1.5;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                user-select: none;
+            }
+
+            .container {
+                margin: 10px;
+                width: 80%;
+                max-width: 800px;
+                padding: 5px 25px 25px;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                border-radius: 10px;
+                transition: transform 0.3s;
+            }
+            .container:hover {
+                transform: scale(1.02);
+                box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            }
+
+            button {
+                height: auto;
+                width: 80px;
+                padding: 5px 10px;
+                border: none;
+                border-radius: 4px;
+                background-color: #007bff;
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+            button:disabled {
+                background-color: #007bff6e;
+                cursor: not-allowed;
+            }
+
+            .messageBox {
+                width: 80%;
+                border: 2px solid #333;
+                padding: 5px 20px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>连点速度测试</h1>
+            <p>
+                免责声明: 该测试仅供娱乐, 无法判断您是否是人机.
+            </p>
+            <p>
+                请连续点击下方按钮 16 次以进行测试, 点击 
+                <button onclick="reset()" style="width: 60px;">此处</button> 
+                以重置。
+            </p>
+            <p><button onclick="handle()" id="clickMe">0/16</button></p>
+            <p>消息: </p>
+            <div class="messageBox">
+                <p id="message">这是一条默认消息</p>
+            </div>
+        </div>
+        <script>
+            const N = 16;
+            let clickTime = new Array(N), clickCnt = 0, interval = new Array(N - 1), average = 0, average2 = 0, variance = 0, maxIvl = 0, minIvl = 5000, range, message;
+            function reset() {
+                for(let i = 0; i < N; i++) {
+                    clickTime[i] = 0;
+                }
+                clickCnt = 0;
+                average = 0;
+                average2 = 0;
+                variance = 0;
+                maxIvl = 0;
+                minIvl = 5000;
+                document.getElementById('clickMe').disabled = false;
+                document.getElementById('clickMe').textContent = '0/' + N;
+            }
+            function handle() {
+                clickTime[clickCnt++] = new Date().getTime();
+                document.getElementById('clickMe').textContent = clickCnt + '/' + N;
+                if(clickCnt == N) {
+                    document.getElementById('clickMe').disabled = true;
+                    getResult();
+                }
+            }
+            function getResult() {
+                for(let i = 0; i < N - 1; i++) {
+                    interval[i] = clickTime[i + 1] - clickTime[i];
+                    average += interval[i];
+                    maxIvl = Math.max(maxIvl, interval[i]);
+                    minIvl = Math.min(minIvl, interval[i]);
+                }
+                average2 = Math.floor( (average - maxIvl - minIvl) / (N - 3) );
+                average = Math.floor(average / (N - 1));
+                range = maxIvl - minIvl;
+                for(let i = 0; i < N - 1; i++) {
+                    variance += (interval[i] - average) * (interval[i] - average);
+                }
+                variance = Math.floor(variance / (N - 1));
+                message =
+                '间隔时长(ms): ' + interval +
+                ';<br/>间隔时长的平均值(ms): ' + average +
+                ';<br/>方差(ms²): ' + variance +
+                ';<br/>极差(ms): ' + range +
+                ';<br/>去掉极值后的平均值(ms): ' + average2;
+                showMessage(message);
+            }
+            function showMessage(message) {
+                document.getElementById('message').innerHTML = formatTime() + '<br/>' + message;
+            }
+            function formatTime() {
+                let date = new Date();
+                let year = date.getFullYear();
+                let month = String(date.getMonth() + 1).padStart(2, '0');
+                let day = String(date.getDate()).padStart(2, '0');
+                let hours = String(date.getHours()).padStart(2, '0');
+                let minutes = String(date.getMinutes()).padStart(2, '0');
+                let seconds = String(date.getSeconds()).padStart(2, '0');
+                return year + '.' + month + '.' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+            }
+        </script>
+    </body>
+</html>
